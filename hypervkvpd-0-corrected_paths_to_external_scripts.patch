@@ -1,0 +1,45 @@
+From c8cec9f3f9c34aa824e652a01ae08e7e7a621daa Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Wed, 26 Sep 2012 10:26:55 +0200
+Subject: [PATCH] Corrected paths to hypervkvpd external scripts.
+
+Corrected paths to hypervkvpd external scripts, because
+they will be located in "/usr/libexec/hypervkvpd".
+---
+ hv_kvp_daemon.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/hv_kvp_daemon.c b/hv_kvp_daemon.c
+index 5959aff..3ea3af2 100644
+--- a/hv_kvp_daemon.c
++++ b/hv_kvp_daemon.c
+@@ -812,7 +812,7 @@ static void kvp_get_ipconfig_info(char *if_name,
+ 	 * .
+ 	 */
+ 
+-	sprintf(cmd, "%s",  "hv_get_dns_info");
++	sprintf(cmd, "%s",  "/usr/libexec/hypervkvpd/hv_get_dns_info");
+ 
+ 	/*
+ 	 * Execute the command to gather DNS info.
+@@ -829,7 +829,7 @@ static void kvp_get_ipconfig_info(char *if_name,
+ 	 * Enabled: DHCP enabled.
+ 	 */
+ 
+-	sprintf(cmd, "%s %s", "hv_get_dhcp_info", if_name);
++	sprintf(cmd, "%s %s", "/usr/libexec/hypervkvpd/hv_get_dhcp_info", if_name);
+ 
+ 	file = popen(cmd, "r");
+ 	if (file == NULL)
+@@ -1331,7 +1331,7 @@ setval_done:
+ 	 * invoke the external script to do its magic.
+ 	 */
+ 
+-	snprintf(cmd, sizeof(cmd), "%s %s", "hv_set_ifconfig", if_file);
++	snprintf(cmd, sizeof(cmd), "%s %s", "/usr/libexec/hypervkvpd/hv_set_ifconfig", if_file);
+ 	system(cmd);
+ 	return 0;
+ 
+-- 
+1.7.11.4
+

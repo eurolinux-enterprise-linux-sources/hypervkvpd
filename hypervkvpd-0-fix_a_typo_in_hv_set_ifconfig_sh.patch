@@ -1,0 +1,31 @@
+From: Jason Wang <jasowang@redhat.com>
+To: gregkh@linuxfoundation.org, kys@microsoft.com, haiyangz@microsoft.com,
+ linux-kernel@vger.kernel.org
+Cc: thozza@redhat.com, Jason Wang <jasowang@redhat.com>
+Subject: [PATCH] tools: fix a typo in hv_set_ifconfig.sh
+Date: Sat,  5 Jan 2013 13:03:06 +0800
+Message-Id: <1357362186-5258-1-git-send-email-jasowang@redhat.com>
+X-Scanned-By: MIMEDefang 2.68 on 10.5.11.22
+X-Evolution-Source: 1341412795.2030.0@thozza-pc.brq.redhat.com
+Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+
+Signed-off-by: Jason Wang <jasowang@redhat.com>
+---
+ tools/hv/hv_set_ifconfig.sh |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/hv_set_ifconfig.sh b/hv_set_ifconfig.sh
+index 3e9427e..daf7ec0 100755
+--- a/hv_set_ifconfig.sh
++++ b/hv_set_ifconfig.sh
+@@ -65,4 +65,4 @@ cp $1 /etc/sysconfig/network-scripts/
+ interface=$(echo $1 | awk -F - '{ print $2 }')
+ 
+ /sbin/ifdown $interface 2>/dev/null
+-/sbin/ifup $interfac 2>/dev/null
++/sbin/ifup $interface 2>/dev/null
+-- 
+1.7.1
+
+

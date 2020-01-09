@@ -1,0 +1,62 @@
+From 096ad9e5c4c23fd030fe1dcf7df26d840320fcfd Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Mon, 5 Nov 2012 16:42:44 +0100
+Subject: [PATCH 1/3] tools/hv: Fix /var subdirectory
+
+Initial patch by Ben Hutchings <ben@decadent.org.uk>
+
+We will install this in /usr, so it must use /var/lib for its state.
+Only programs installed under /opt should use /var/opt.
+
+Signed-off-by: Tomas Hozza <thozza@redhat.com>
+---
+ hv_kvp_daemon.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/hv_kvp_daemon.c b/hv_kvp_daemon.c
+index 3ea3af2..a4cdff5 100755
+--- a/hv_kvp_daemon.c
++++ b/hv_kvp_daemon.c
+@@ -95,7 +95,7 @@ static struct utsname uts_buf;
+  * The location of the interface configuration file.
+  */
+ 
+-#define KVP_CONFIG_LOC	"/var/opt/"
++#define KVP_CONFIG_LOC	"/var/lib/hyperv"
+ 
+ #define MAX_FILE_NAME 100
+ #define ENTRIES_PER_BLOCK 50
+@@ -232,9 +232,9 @@ static int kvp_file_init(void)
+ 	int i;
+ 	int alloc_unit = sizeof(struct kvp_record) * ENTRIES_PER_BLOCK;
+ 
+-	if (access("/var/opt/hyperv", F_OK)) {
+-		if (mkdir("/var/opt/hyperv", S_IRUSR | S_IWUSR | S_IROTH)) {
+-			syslog(LOG_ERR, " Failed to create /var/opt/hyperv");
++	if (access(KVP_CONFIG_LOC, F_OK)) {
++		if (mkdir(KVP_CONFIG_LOC, S_IRUSR | S_IWUSR | S_IROTH)) {
++			syslog(LOG_ERR, " Failed to create %s", KVP_CONFIG_LOC);
+ 			exit(EXIT_FAILURE);
+ 		}
+ 	}
+@@ -243,7 +243,7 @@ static int kvp_file_init(void)
+ 		fname = kvp_file_info[i].fname;
+ 		records_read = 0;
+ 		num_blocks = 1;
+-		sprintf(fname, "/var/opt/hyperv/.kvp_pool_%d", i);
++		sprintf(fname, "%s/.kvp_pool_%d", KVP_CONFIG_LOC, i);
+ 		fd = open(fname, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IROTH);
+ 
+ 		if (fd == -1)
+@@ -1263,7 +1263,7 @@ static int kvp_set_ip_info(char *if_name, struct hv_kvp_ipaddr_value *new_val)
+ 	 */
+ 
+ 	snprintf(if_file, sizeof(if_file), "%s%s%s", KVP_CONFIG_LOC,
+-		"hyperv/ifcfg-", if_name);
++		"/ifcfg-", if_name);
+ 
+ 	file = fopen(if_file, "w");
+ 
+-- 
+1.7.11.7
+

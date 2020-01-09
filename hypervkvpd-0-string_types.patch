@@ -1,0 +1,61 @@
+From 7ad7cb4dc634c4c6c9a5cea390332e96f822efa9 Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Mon, 5 Nov 2012 16:55:39 +0100
+Subject: [PATCH 2/3] tools/hv: Fix string types
+
+Initial patch by Ben Hutchings <ben@decadent.org.uk>
+
+Standard C strings are arrays of char, not __u8 (unsigned char).
+Declare variables and parameters accordingly, and add the necessary
+casts.
+
+Signed-off-by: Tomas Hozza <thozza@redhat.com>
+---
+ hv_kvp_daemon.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/hv_kvp_daemon.c b/hv_kvp_daemon.c
+index a4cdff5..2bdca04 100755
+--- a/hv_kvp_daemon.c
++++ b/hv_kvp_daemon.c
+@@ -297,7 +297,7 @@ static int kvp_file_init(void)
+ 	return 0;
+ }
+ 
+-static int kvp_key_delete(int pool, __u8 *key, int key_size)
++static int kvp_key_delete(int pool, const char *key, int key_size)
+ {
+ 	int i;
+ 	int j, k;
+@@ -340,7 +340,7 @@ static int kvp_key_delete(int pool, __u8 *key, int key_size)
+ 	return 1;
+ }
+ 
+-static int kvp_key_add_or_modify(int pool, __u8 *key, int key_size, __u8 *value,
++static int kvp_key_add_or_modify(int pool, const char *key, int key_size, const char *value,
+ 			int value_size)
+ {
+ 	int i;
+@@ -394,7 +394,7 @@ static int kvp_key_add_or_modify(int pool, __u8 *key, int key_size, __u8 *value,
+ 	return 0;
+ }
+ 
+-static int kvp_get_value(int pool, __u8 *key, int key_size, __u8 *value,
++static int kvp_get_value(int pool, const char *key, int key_size, char *value,
+ 			int value_size)
+ {
+ 	int i;
+@@ -426,8 +426,8 @@ static int kvp_get_value(int pool, __u8 *key, int key_size, __u8 *value,
+ 	return 1;
+ }
+ 
+-static int kvp_pool_enumerate(int pool, int index, __u8 *key, int key_size,
+-				__u8 *value, int value_size)
++static int kvp_pool_enumerate(int pool, int index, char *key, int key_size,
++				char *value, int value_size)
+ {
+ 	struct kvp_record *record;
+ 
+-- 
+1.7.11.7
+

@@ -1,0 +1,40 @@
+From 6199072f8131056efce208f04e6985d1f9968d8e Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Mon, 5 Nov 2012 10:08:16 +0100
+Subject: [PATCH] Netlink source address validation allows DoS
+
+The source code without this patch caused hypervkvpd to exit when it processed
+a spoofed Netlink packet which has been sent from an untrusted local user.
+Netlink messages with a non-zero nl_pid source address should just be ignored.
+---
+ hv_kvp_daemon.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/hv_kvp_daemon.c b/hv_kvp_daemon.c
+index 3ea3af2..7d74497 100755
+--- a/hv_kvp_daemon.c
++++ b/hv_kvp_daemon.c
+@@ -1478,13 +1478,19 @@ int main(void)
+ 		len = recvfrom(fd, kvp_recv_buffer, sizeof(kvp_recv_buffer), 0,
+ 				addr_p, &addr_l);
+ 
+-		if (len < 0 || addr.nl_pid) {
++		if (len < 0) {
+ 			syslog(LOG_ERR, "recvfrom failed; pid:%u error:%d %s",
+ 					addr.nl_pid, errno, strerror(errno));
+ 			close(fd);
+ 			return -1;
+ 		}
+ 
++		if (addr.nl_pid) {
++			syslog(LOG_WARNING, "Received packet from untrusted pid:%u",
++					addr.nl_pid);
++			continue;
++		}
++
+ 		incoming_msg = (struct nlmsghdr *)kvp_recv_buffer;
+ 		incoming_cn_msg = (struct cn_msg *)NLMSG_DATA(incoming_msg);
+ 		hv_msg = (struct hv_kvp_msg *)incoming_cn_msg->data;
+-- 
+1.7.11.7
+
