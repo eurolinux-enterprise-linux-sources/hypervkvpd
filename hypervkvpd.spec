@@ -3,7 +3,7 @@
 
 Name:     hypervkvpd
 Version:  0
-Release:  0.9%{?dist}
+Release:  0.12%{?dist}
 Summary:  HyperV key value pair (KVP) daemon
 
 Group:    System Environment/Daemons
@@ -32,6 +32,17 @@ Patch5:   hypervkvpd-0-permissions_of_created_directory_and_files.patch
 Patch6:   hypervkvpd-0-fix_a_typo_in_hv_set_ifconfig_sh.patch
 Patch7:   hypervkvpd-0-Fix-how-ifcfg-file-is-created.patch
 Patch8:   hypervkvpd-0-Use-CLOEXEC-when-opening-kvp_pool-files.patch
+# rhbz#920032
+Patch9:   hypervkvpd-0-subscribe_only_to_CN_KVP_IDX_group.patch
+Patch10:  hypervkvpd-0-setsockopt_use_options_macros.patch
+Patch11:  hypervkvpd-0-check_type_of_received_Netlink_msg.patch
+# rhbz#965944
+Patch12:  hypervkvpd-0-Check_return_value_of_setsockopt_call.patch
+Patch13:  hypervkvpd-0-Check_return_value_of_poll_call.patch
+Patch14:  hypervkvpd-0-Check_retrun_value_of_strchr_call.patch
+Patch15:  hypervkvpd-0-Fix_file_descriptor_leaks.patch
+# rhbz#983851
+Patch16:  hypervkvpd-0-fix-ipv6-subnet-enumeration.patch
 
 BuildRoot:        %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 # this package is supposed to run on RHEL when it's a guest under Hyper-V
@@ -65,16 +76,32 @@ cp -pvL %{SOURCE4} hypervkvpd
 %patch6 -p1
 %patch7 -p3 -b .ifcfg_fix
 %patch8 -p3 -b .use_CLOEXEC
+%patch9 -p3 -b .nl_group
+%patch10 -p3 -b .use_macros
+%patch11 -p3 -b .check_nl_msg_type
+%patch12 -p3 -b .check_setsockopt
+%patch13 -p3 -b .check_poll
+%patch14 -p3 -b .check_strchr
+%patch15 -p3 -b .fd_leaks
+%patch16 -p3 -b .ipv6_enum
 
 
 %build
 # kernel-devel version
 %{!?kversion: %global kversion `ls %{_usrsrc}/kernels | sort -dr | head -n 1`}
 
+# We need to compile the daemon with PIE, PIC and FULL RELRO
+RPM_LD_FLAGS="-Wl,-z,relro,-z,now -pie"
+RPM_OPT_FLAGS="$RPM_OPT_FLAGS -fPIE -DPIE -fPIC"
+
 gcc \
-    %{optflags} \
+    $RPM_OPT_FLAGS \
     -I%{_usrsrc}/kernels/%{kversion}/include \
-    %{hv_kvp_daemon}.c \
+    -c %{hv_kvp_daemon}.c
+    
+gcc \
+    $RPM_LD_FLAGS \
+    hv_kvp_daemon.o \
     -o %{hv_kvp_daemon}
 
 
@@ -136,6 +163,18 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jul 15 2013 Tomas Hozza <thozza@redhat.com> - 0-0.12
+- Fix a bug in IPV6 subnet enumeration (#983851)
+
+* Wed Jun 26 2013 Tomas Hozza <thozza@redhat.com> - 0-0.11
+- Fix initscript test if Hyper-V drivers are loaded (#978300)
+- Build the daemon with full RELRO and PIE (#977861)
+
+* Thu Jun 06 2013 Tomas Hozza <thozza@redhat.com> - 0-0.10
+- Fix segfault when cgred is running (#920032)
+- Fix errors found by static analysis of code (#965944)
+- Start hypervkvpd only if Hyper-V drivers are loaded (#962565)
+
 * Mon Jan 14 2013 Tomas Hozza <thozza@redhat.com> - 0-0.9
 - Fix a typo in hv_set_ifconfig.sh script
 - Fix creation process of ifcfg-* files when doing IP injection

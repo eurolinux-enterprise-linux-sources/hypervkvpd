@@ -30,11 +30,21 @@ test -x $HV_KVP_BIN || { echo "$HV_KVP_BIN not installed";
 	else exit 5; fi; }
 
 start(){
+	# check if Hyper-V drivers are present
+	if [ -z "`lsmod | grep hv_utils`" ]; then
+		echo "Hyper-V drivers are not loaded."
+		echo -n "Hyper-V KVP daemon not started:"
+		warning
+		echo
+		# return LSB exit code "program is not running" ~ 7
+		RETVAL=7
+		return $RETVAL
+	fi
+	
 	if ! status $HV_KVP_BIN >&/dev/null; then
 		echo -n "Starting Hyper-V KVP daemon "
 		daemon $HV_KVP_BIN
 		RETVAL=$?
-		echo
 		[ $RETVAL -eq 0 ] && touch $lockfile
 	else
 		echo -n "Hyper-V KVP daemon is already started"

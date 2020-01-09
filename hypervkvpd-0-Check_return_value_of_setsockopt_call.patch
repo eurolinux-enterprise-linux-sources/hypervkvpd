@@ -1,0 +1,35 @@
+From 359016032239e0a585c01bffe04b72ab037e5de4 Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Wed, 22 May 2013 12:54:30 +0000
+Subject: tools: hv: Check return value of setsockopt call
+
+Check return value of setsockopt call and if it fails print error
+to the system log and exit with non-zero value.
+
+Signed-off-by: Tomas Hozza <thozza@redhat.com>
+Acked-by:  K. Y. Srinivasan <kys@microsoft.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+(limited to 'tools/hv/hv_kvp_daemon.c')
+
+diff --git a/tools/hv/hv_kvp_daemon.c b/tools/hv/hv_kvp_daemon.c
+index 5a1f648..ae9aa1c 100644
+--- a/tools/hv/hv_kvp_daemon.c
++++ b/tools/hv/hv_kvp_daemon.c
+@@ -1457,7 +1457,13 @@ int main(void)
+ 		exit(EXIT_FAILURE);
+ 	}
+ 	nl_group = CN_KVP_IDX;
+-	setsockopt(fd, SOL_NETLINK, NETLINK_ADD_MEMBERSHIP, &nl_group, sizeof(nl_group));
++
++	if (setsockopt(fd, SOL_NETLINK, NETLINK_ADD_MEMBERSHIP, &nl_group, sizeof(nl_group)) < 0) {
++		syslog(LOG_ERR, "setsockopt failed; error: %d %s", errno, strerror(errno));
++		close(fd);
++		exit(EXIT_FAILURE);
++	}
++
+ 	/*
+ 	 * Register ourselves with the kernel.
+ 	 */
+--
+cgit v0.9.2

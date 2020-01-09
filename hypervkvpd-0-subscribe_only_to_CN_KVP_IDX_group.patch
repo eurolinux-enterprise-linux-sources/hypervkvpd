@@ -1,0 +1,45 @@
+From 77d6a5289343665a41f55c0ea46c169b3f551a24 Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Wed, 13 Mar 2013 13:14:12 +0000
+Subject: tools: hv: daemon should subscribe only to CN_KVP_IDX group
+
+Previously HyperV daemon set sockaddr_nl.nl_groups to CN_KVP_IDX.
+Netlink documentation says: "nl_groups is a bit mask with every bit
+representing a netlink group number". Since CN_KVP_IDX value is "9"
+HyperV daemon was receiving Netlink messages also from group number
+"1" which is used by CGroup Rules Engine Daemon. This caused the
+daemon to segfault (at least on 2.6.32 kernel).
+
+HyperV daemon should set nl_groups to zero and specify multicast
+group CN_KVP_IDX only by using socket options.
+
+Signed-off-by: Tomas Hozza <thozza@redhat.com>
+Acked-by: K. Y. Srinivasan <kys@microsoft.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+(limited to 'tools/hv/hv_kvp_daemon.c')
+
+diff --git a/tools/hv/hv_kvp_daemon.c b/tools/hv/hv_kvp_daemon.c
+index c800ea4..908a612 100644
+--- a/tools/hv/hv_kvp_daemon.c
++++ b/tools/hv/hv_kvp_daemon.c
+@@ -1443,7 +1443,7 @@ int main(void)
+ 	addr.nl_family = AF_NETLINK;
+ 	addr.nl_pad = 0;
+ 	addr.nl_pid = 0;
+-	addr.nl_groups = CN_KVP_IDX;
++	addr.nl_groups = 0;
+ 
+ 
+ 	error = bind(fd, (struct sockaddr *)&addr, sizeof(addr));
+@@ -1452,7 +1452,7 @@ int main(void)
+ 		close(fd);
+ 		exit(EXIT_FAILURE);
+ 	}
+-	sock_opt = addr.nl_groups;
++	sock_opt = CN_KVP_IDX;
+ 	setsockopt(fd, 270, 1, &sock_opt, sizeof(sock_opt));
+ 	/*
+ 	 * Register ourselves with the kernel.
+--
+cgit v0.9.2

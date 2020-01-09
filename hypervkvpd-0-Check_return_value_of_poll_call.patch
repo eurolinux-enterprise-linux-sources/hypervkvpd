@@ -1,0 +1,39 @@
+From 4d81e3074423d1bd69a29d5795ff71205814d9e1 Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Wed, 22 May 2013 12:54:31 +0000
+Subject: tools: hv: Check return value of poll call
+
+Check return value of poll call and if it fails print error
+to the system log. If errno is EINVAL then exit with non-zero
+value otherwise continue the while loop and call poll again.
+
+Signed-off-by: Tomas Hozza <thozza@redhat.com>
+Acked-by:  K. Y. Srinivasan <kys@microsoft.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+(limited to 'tools/hv/hv_kvp_daemon.c')
+
+diff --git a/tools/hv/hv_kvp_daemon.c b/tools/hv/hv_kvp_daemon.c
+index ae9aa1c..81cbb6e 100644
+--- a/tools/hv/hv_kvp_daemon.c
++++ b/tools/hv/hv_kvp_daemon.c
+@@ -1490,7 +1490,16 @@ int main(void)
+ 		socklen_t addr_l = sizeof(addr);
+ 		pfd.events = POLLIN;
+ 		pfd.revents = 0;
+-		poll(&pfd, 1, -1);
++
++		if (poll(&pfd, 1, -1) < 0) {
++			syslog(LOG_ERR, "poll failed; error: %d %s", errno, strerror(errno));
++			if (errno == EINVAL) {
++				close(fd);
++				exit(EXIT_FAILURE);
++			}
++			else
++				continue;
++		}
+ 
+ 		len = recvfrom(fd, kvp_recv_buffer, sizeof(kvp_recv_buffer), 0,
+ 				addr_p, &addr_l);
+--
+cgit v0.9.2

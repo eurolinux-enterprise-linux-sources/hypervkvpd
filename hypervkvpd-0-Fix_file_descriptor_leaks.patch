@@ -1,0 +1,45 @@
+From fca597558e47f936a0e03bab15af726aa3a0fa0e Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Wed, 22 May 2013 12:54:33 +0000
+Subject: tools: hv: Fix file descriptor leaks
+
+Close "fd" file descriptor when is goes out of scope so it does
+not leak.
+
+Signed-off-by: Tomas Hozza <thozza@redhat.com>
+Acked-by:  K. Y. Srinivasan <kys@microsoft.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+(limited to 'tools/hv/hv_kvp_daemon.c')
+
+diff --git a/tools/hv/hv_kvp_daemon.c b/tools/hv/hv_kvp_daemon.c
+index 5b8f28f..d55ce40 100644
+--- a/tools/hv/hv_kvp_daemon.c
++++ b/tools/hv/hv_kvp_daemon.c
+@@ -257,12 +257,15 @@ static int kvp_file_init(void)
+ 
+ 
+ 		filep = fopen(fname, "re");
+-		if (!filep)
++		if (!filep) {
++			close(fd);
+ 			return 1;
++		}
+ 
+ 		record = malloc(alloc_unit * num_blocks);
+ 		if (record == NULL) {
+ 			fclose(filep);
++			close(fd);
+ 			return 1;
+ 		}
+ 		for (;;) {
+@@ -286,6 +289,7 @@ static int kvp_file_init(void)
+ 						num_blocks);
+ 				if (record == NULL) {
+ 					fclose(filep);
++					close(fd);
+ 					return 1;
+ 				}
+ 				continue;
+--
+cgit v0.9.2

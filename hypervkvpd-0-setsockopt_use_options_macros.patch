@@ -1,0 +1,51 @@
+From f4685fa6d0427c3948a5120a9658fad7ae81facd Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Wed, 13 Mar 2013 13:14:13 +0000
+Subject: tools: hv: daemon setsockopt should use options macros
+
+HyperV daemon should use macros for option values when calling setsockopt.
+Using specific numeric values instead of macros is confusing.
+
+Signed-off-by: Tomas Hozza <thozza@redhat.com>
+Acked-by: K. Y. Srinivasan <kys@microsoft.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+(limited to 'tools/hv/hv_kvp_daemon.c')
+
+diff --git a/tools/hv/hv_kvp_daemon.c b/tools/hv/hv_kvp_daemon.c
+index 908a612..704a0f9 100644
+--- a/tools/hv/hv_kvp_daemon.c
++++ b/tools/hv/hv_kvp_daemon.c
+@@ -102,6 +102,10 @@ static struct utsname uts_buf;
+ #define MAX_FILE_NAME 100
+ #define ENTRIES_PER_BLOCK 50
+ 
++#ifndef SOL_NETLINK
++#define SOL_NETLINK 270
++#endif
++
+ struct kvp_record {
+ 	char key[HV_KVP_EXCHANGE_MAX_KEY_SIZE];
+ 	char value[HV_KVP_EXCHANGE_MAX_VALUE_SIZE];
+@@ -1407,7 +1411,7 @@ netlink_send(int fd, struct cn_msg *msg)
+ 
+ int main(void)
+ {
+-	int fd, len, sock_opt;
++	int fd, len, nl_group;
+ 	int error;
+ 	struct cn_msg *message;
+ 	struct pollfd pfd;
+@@ -1452,8 +1456,8 @@ int main(void)
+ 		close(fd);
+ 		exit(EXIT_FAILURE);
+ 	}
+-	sock_opt = CN_KVP_IDX;
+-	setsockopt(fd, 270, 1, &sock_opt, sizeof(sock_opt));
++	nl_group = CN_KVP_IDX;
++	setsockopt(fd, SOL_NETLINK, NETLINK_ADD_MEMBERSHIP, &nl_group, sizeof(nl_group));
+ 	/*
+ 	 * Register ourselves with the kernel.
+ 	 */
+--
+cgit v0.9.2

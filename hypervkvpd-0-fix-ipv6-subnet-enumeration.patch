@@ -1,0 +1,32 @@
+From: "K. Y. Srinivasan" <kys@microsoft.com>
+Subject: [PATCH 1/1] Tools: hv: KVP: Fix a bug in IPV6 subnet enumeration
+Date: Thu, 11 Jul 2013 12:03:31 -0700
+
+Each subnet string needs to be separated with a semicolon. Fix this bug.
+
+Signed-off-by: K. Y. Srinivasan <kys@microsoft.com>
+Cc: Stable <stable@vger.kernel.org>
+---
+ tools/hv/hv_kvp_daemon.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/tools/hv/hv_kvp_daemon.c b/tools/hv/hv_kvp_daemon.c
+index ca9fa4d..07819bf 100644
+--- a/tools/hv/hv_kvp_daemon.c
++++ b/tools/hv/hv_kvp_daemon.c
+@@ -1026,9 +1026,10 @@ kvp_get_ip_info(int family, char *if_name, int op,
+ 
+ 				if (sn_offset == 0)
+ 					strcpy(sn_str, cidr_mask);
+-				else
++				else {
++					strcat((char *)ip_buffer->sub_net, ";");
+ 					strcat(sn_str, cidr_mask);
+-				strcat((char *)ip_buffer->sub_net, ";");
++				}
+ 				sn_offset += strlen(sn_str) + 1;
+ 			}
+ 
+-- 
+1.7.4.1
+

@@ -1,0 +1,32 @@
+From 75db601496e97ffa2476dcd00053c0ca95e977a5 Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Wed, 13 Mar 2013 13:14:14 +0000
+Subject: tools: hv: daemon should check type of received Netlink msg
+
+HyperV KVP daemon should check nlmsg_type in received netlink message
+header. If message type is NLMSG_DONE daemon can proceed with processing
+otherwise it should wait for next message.
+
+Signed-off-by: Tomas Hozza <thozza@redhat.com>
+Acked-by: K. Y. Srinivasan <kys@microsoft.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+(limited to 'tools/hv/hv_kvp_daemon.c')
+
+diff --git a/tools/hv/hv_kvp_daemon.c b/tools/hv/hv_kvp_daemon.c
+index 704a0f9..5a1f648 100644
+--- a/tools/hv/hv_kvp_daemon.c
++++ b/tools/hv/hv_kvp_daemon.c
+@@ -1503,6 +1503,10 @@ int main(void)
+ 		}
+ 
+ 		incoming_msg = (struct nlmsghdr *)kvp_recv_buffer;
++
++		if (incoming_msg->nlmsg_type != NLMSG_DONE)
++			continue;
++
+ 		incoming_cn_msg = (struct cn_msg *)NLMSG_DATA(incoming_msg);
+ 		hv_msg = (struct hv_kvp_msg *)incoming_cn_msg->data;
+ 
+--
+cgit v0.9.2

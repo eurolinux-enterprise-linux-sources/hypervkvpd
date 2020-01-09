@@ -1,0 +1,31 @@
+From f14e600a3bb62905fe9e4e0350048af4ead54ca9 Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Wed, 22 May 2013 12:54:32 +0000
+Subject: tools: hv: Check retrun value of strchr call
+
+Check return value of strchr call and dereference it only if it is
+not NULL.
+
+Signed-off-by: Tomas Hozza <thozza@redhat.com>
+Acked-by:  K. Y. Srinivasan <kys@microsoft.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+(limited to 'tools/hv/hv_kvp_daemon.c')
+
+diff --git a/tools/hv/hv_kvp_daemon.c b/tools/hv/hv_kvp_daemon.c
+index 81cbb6e..5b8f28f 100644
+--- a/tools/hv/hv_kvp_daemon.c
++++ b/tools/hv/hv_kvp_daemon.c
+@@ -765,7 +765,9 @@ static void kvp_process_ipconfig_file(char *cmd,
+ 			break;
+ 
+ 		x = strchr(p, '\n');
+-		*x = '\0';
++		if (x)
++			*x = '\0';
++
+ 		strcat(config_buf, p);
+ 		strcat(config_buf, ";");
+ 	}
+--
+cgit v0.9.2
